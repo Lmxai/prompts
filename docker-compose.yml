@@ -1,0 +1,44 @@
+﻿services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm_agent_service
+    ports:
+      - "5201:5201"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=lmxai_llm_container
+      - REDIS_URI=redis://redis:6379
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo_db
+    ports:
+      - "27020:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: always
+
+volumes:
+  mongo_data:
+  redis-data:
